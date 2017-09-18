@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<configuration>
+  <!-- 
+  <property>
+    <name>apex.application.{appName}.operator.{opName}.prop.{propName}</name>
+    <value>some-default-value (if value is not specified, it is required from the user or custom config when launching)</value>
+  </property>
+  -->
+  <!-- memory assigned to app master
+  <property>
+    <name>apex.attr.MASTER_MEMORY_MB</name>
+    <value>1024</value>
+  </property>
+  -->
+  <property>
+    <name>apex.application.ApexTensorflowExample.operator.ImageReader.prop.directory</name>
+    <value>/user/ambarish/apex-tf/images/</value>
+  </property>
+
+  <property>
+    <name>apex.application.ApexTensorflowExample.operator.Scorer.prop.modelDir</name>
+    <value>/user/ambarish/apex-tf/models/</value>
+  </property>
+
+  <property>
+    <name>apex.application.ApexTensorflowExample.operator.Scorer.prop.modelFileName</name>
+    <value>tensorflow_inception_graph.pb</value>
+  </property>
+
+  <property>
+    <name>apex.application.ApexTensorflowExample.operator.Scorer.prop.labelsFileName</name>
+    <value>imagenet_comp_graph_label_strings.txt</value>
+  </property>
+
+
+</configuration>
+
