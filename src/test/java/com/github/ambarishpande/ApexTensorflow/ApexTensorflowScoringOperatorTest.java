@@ -36,6 +36,7 @@ public class ApexTensorflowScoringOperatorTest
       d.fileName = image;
       d.imageType="jpeg";
       ImageNormalizer n = new ImageNormalizer();
+      n.setup(null);
       Image i = new Image(n.normalize(d),d);
       tf.input.process(i);
     }
