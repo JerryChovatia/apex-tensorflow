@@ -24,10 +24,10 @@ public class ApexTensorflowScoringOperator extends BaseOperator
   private static final Logger LOG = LoggerFactory.getLogger(ApexTensorflowScoringOperator.class);
 
   private transient byte[] graphDef;
-  private transient String modelDir;
-  private transient String modelFileName;
+  private String modelDir;
+  private String modelFileName;
   private transient Graph g;
-  private transient String labelsFileName;
+  private String labelsFileName;
   private transient List<String> labels;
 
   public transient DefaultInputPort<Image> input = new DefaultInputPort<Image>()
@@ -49,8 +49,8 @@ public class ApexTensorflowScoringOperator extends BaseOperator
   public void setup(Context.OperatorContext context)
   {
 
-    graphDef = Utils.readModelFromHdfs(modelDir + "/" + modelFileName);
-    labels = Utils.readLabelsFromFile(modelDir + "/" + labelsFileName);
+    graphDef = Utils.readModelFromHdfs(modelDir + modelFileName);
+    labels = Utils.readLabelsFromFile(modelDir + labelsFileName);
     g = new Graph();
     g.importGraphDef(graphDef);
 
