@@ -24,7 +24,7 @@
 
   <property>
     <name>apex.application.ApexTensorflowExample.operator.Scorer.prop.modelFileName</name>
-    <value>tensorflow_inception_graph.pb</value>
+    <value>inception_v4.ckpt</value>
   </property>
 
   <property>

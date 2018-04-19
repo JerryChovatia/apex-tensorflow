@@ -1,6 +1,8 @@
 package com.github.ambarishpande.ApexTensorflow;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,9 +13,15 @@ import org.tensorflow.Output;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 
+import com.esotericsoftware.kryo.serializers.FieldSerializer;
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
+
+import com.datatorrent.api.AutoMetric;
 import com.datatorrent.api.Context;
 import com.datatorrent.api.DefaultInputPort;
+import com.datatorrent.api.DefaultOutputPort;
 import com.datatorrent.common.util.BaseOperator;
+import com.datatorrent.common.util.Pair;
 
 /**
  * Created by ambarish on 28/8/17.
@@ -29,6 +37,11 @@ public class ApexTensorflowScoringOperator extends BaseOperator
   private transient Graph g;
   private String labelsFileName;
   private transient List<String> labels;
+  private int[] counts;
+
+  @FieldSerializer.Bind(JavaSerializer.class)
+  @AutoMetric
+  private Collection<Collection<Pair<String, Object>>> labelCounts = new ArrayList<>();
 
   public transient DefaultInputPort<Image> input = new DefaultInputPort<Image>()
   {
@@ -38,13 +51,25 @@ public class ApexTensorflowScoringOperator extends BaseOperator
     {
       float[] labelProbabilities = executeGraph(image.getImage());
       int bestLabelIdx = Utils.maxIndex(labelProbabilities);
+
+      if (outputBestCategory.isConnected()) {
+        outputBestCategory.emit(new TfCategory(bestLabelIdx, labels.get(bestLabelIdx), labelProbabilities[bestLabelIdx]));
+      }
+
+      counts[bestLabelIdx]++;
+
       LOG.info(
         String.format(
           "BEST MATCH: %s  %s (%.2f%% likely)", image.getD().fileName,
           labels.get(bestLabelIdx), labelProbabilities[bestLabelIdx] * 100f));
+
     }
 
   };
+
+  public transient DefaultOutputPort<Tensor> outputTensor = new DefaultOutputPort();
+  public transient DefaultOutputPort<TfCategory> outputBestCategory = new DefaultOutputPort();
+
 
   public void setup(Context.OperatorContext context)
   {
@@ -53,7 +78,23 @@ public class ApexTensorflowScoringOperator extends BaseOperator
     labels = Utils.readLabelsFromFile(modelDir + labelsFileName);
     g = new Graph();
     g.importGraphDef(graphDef);
+    counts = new int[labels.size()];
 
+  }
+
+  @Override
+  public void beginWindow(long windowId)
+  {
+    super.beginWindow(windowId);
+    labelCounts.clear();
+    for (int i = 0; i < counts.length; i++) {
+      if (counts[i] > 0) {
+        Collection<Pair<String, Object>> row = new ArrayList<>();
+        row.add(new Pair<String, Object>("Label", labels.get(i)));
+        row.add(new Pair<String, Object>("Count", new Double(counts[i])));
+        labelCounts.add(row);
+      }
+    }
   }
 
   private float[] executeGraph(Tensor image)
@@ -68,6 +109,11 @@ public class ApexTensorflowScoringOperator extends BaseOperator
             Arrays.toString(rshape)));
       }
       int nlabels = (int)rshape[1];
+
+      if(outputTensor.isConnected()){
+        outputTensor.emit(result);
+      }
+
       return result.copyTo(new float[1][nlabels])[0];
     }
   }
@@ -171,4 +217,6 @@ public class ApexTensorflowScoringOperator extends BaseOperator
 
     private Graph g;
   }
+
 }
+

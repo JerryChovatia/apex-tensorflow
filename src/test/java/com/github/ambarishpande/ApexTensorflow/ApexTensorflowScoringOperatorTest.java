@@ -18,6 +18,11 @@ public class ApexTensorflowScoringOperatorTest
 {
 
   @Test
+  public void irisTest(){
+
+  }
+
+  @Test
   public void score(){
     ApexTensorflowScoringOperator tf = new ApexTensorflowScoringOperator();
     tf.setModelDir("/user/ambarish/apex-tf/models/");
